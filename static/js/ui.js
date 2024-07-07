@@ -50,6 +50,16 @@ function displaySegmentedTranscription(segments, isSorted = true) {
     container.addEventListener('input', event => {
         if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
             const index = parseInt(event.target.getAttribute('data-index'));
+            const videoDuration = getDuration();
+            const startInput = document.querySelector(`.segment-start[data-index="${index}"]`);
+            const endInput = document.querySelector(`.segment-end[data-index="${index}"]`);
+            
+            // Ensure start time is not negative and not greater than end time or video duration
+            startInput.value = Math.max(0, Math.min(parseFloat(startInput.value), parseFloat(endInput.value), videoDuration));
+            
+            // Ensure end time is not less than start time and not greater than video duration
+            endInput.value = Math.min(Math.max(parseFloat(startInput.value), parseFloat(endInput.value)), videoDuration);
+            
             updateSegmentTimes(index);
             if (index === currentlySelectedSegmentIndex) {
                 playSegment(index, true); // Force replay

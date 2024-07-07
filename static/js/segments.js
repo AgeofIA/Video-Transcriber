@@ -101,10 +101,14 @@ function updateSegmentTimes(index) {
     const endInput = segmentDiv.querySelector('.segment-end');
     const timeSpan = segmentDiv.querySelector('.segment-time');
 
-    const newStart = parseFloat(startInput.value);
-    const newEnd = parseFloat(endInput.value);
-    const duration = (newEnd - newStart).toFixed(2);
+    const videoDuration = getDuration();
+    const newStart = Math.max(0, Math.min(parseFloat(startInput.value), parseFloat(endInput.value), videoDuration));
+    const newEnd = Math.min(Math.max(parseFloat(startInput.value), parseFloat(endInput.value)), videoDuration);
 
+    startInput.value = newStart.toFixed(2);
+    endInput.value = newEnd.toFixed(2);
+
+    const duration = (newEnd - newStart).toFixed(2);
     timeSpan.textContent = `${duration}s`;
 
     transcription.segments[index].start = newStart;

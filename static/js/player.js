@@ -98,3 +98,10 @@ function initializeYouTubePlayer(videoId) {
         });
     }
 }
+
+function getDuration() {
+    if (player && typeof player.getDuration === 'function') {
+        return player.getDuration();
+    }
+    return 0; // Return 0 if player is not initialized or getDuration is not available
+}
