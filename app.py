@@ -89,12 +89,13 @@ def add_new_segment():
     start_time = data['start_time']
     end_time = data['end_time']
     text = data['text']
+    selected_index = data['selected_index']
     
-    session['transcription'], is_sorted_status = add_segment(session['transcription'], start_time, end_time, text)
+    session['transcription'], is_sorted_status = add_segment(session['transcription'], start_time, end_time, text, selected_index)
     session.modified = True
     
     return jsonify({'success': True, 'transcription': session['transcription'], 'is_sorted': is_sorted_status})
-    
+
 @app.route('/remove_segment', methods=['POST'])
 def remove_existing_segment():
     if 'transcription' not in session:

@@ -29,6 +29,7 @@ function saveSegmentChanges(index) {
 
 function addSegment() {
     const videoDuration = getDuration();
+    const selectedIndex = currentlySelectedSegmentIndex !== null ? currentlySelectedSegmentIndex : -1;
     
     fetch('/add_segment', {
         method: 'POST',
@@ -38,7 +39,8 @@ function addSegment() {
         body: JSON.stringify({
             start_time: 0,
             end_time: videoDuration,
-            text: ""
+            text: "",
+            selected_index: selectedIndex
         })
     })
     .then(response => response.json())
@@ -49,6 +51,11 @@ function addSegment() {
             updateFullTranscription();
             isListSorted = data.is_sorted;
             updateSortButtonVisibility();
+            
+            // If a segment was selected, highlight the new segment
+            if (selectedIndex !== -1) {
+                handleSegmentClick(selectedIndex + 1);
+            }
         } else {
             console.error('Failed to add segment');
         }

@@ -46,14 +46,17 @@ def update_transcription(transcription, index, start_time, end_time, text):
     transcription.text = ' '.join([seg['text'].strip() for seg in transcription.segments])
     return transcription
 
-def add_segment(transcription, start_time, end_time, text):
+def add_segment(transcription, start_time, end_time, text, selected_index):
     new_segment = {
         'start': start_time,
         'end': end_time,
         'text': text
     }
     
-    transcription['segments'].insert(0, new_segment)
+    if selected_index >= 0:
+        transcription['segments'].insert(selected_index + 1, new_segment)
+    else:
+        transcription['segments'].insert(0, new_segment)
     
     # Update the full transcription text
     transcription['text'] = ' '.join([seg['text'].strip() for seg in transcription['segments']])
