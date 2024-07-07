@@ -1,7 +1,8 @@
+// Global variables
 let currentlySelectedSegmentIndex = null;
-const clearSelectionButton = document.getElementById('clear-selection');
 let isListSorted = true;
 
+// Displays the segmented transcription in the UI
 function displaySegmentedTranscription(segments, isSorted = true) {
     const container = document.getElementById('segmented-transcription');
     container.innerHTML = '';
@@ -14,7 +15,7 @@ function displaySegmentedTranscription(segments, isSorted = true) {
         div.innerHTML = `
             <div class="flex justify-between items-start">
                 <div class="flex-grow pr-4">
-                <textarea class="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-0 segment-text h-[4.5em] overflow-y-auto" data-index="${index}">${segment.text}</textarea>
+                    <textarea class="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-0 segment-text h-[4.5em] overflow-y-auto" data-index="${index}">${segment.text}</textarea>
                     <div class="px-3 flex justify-between items-center w-full">
                         <button class="remove-segment p-1 text-red-500 hover:text-red-700 rounded-full hover:bg-red-100 transition duration-300 ease-in-out" data-index="${index}" title="Delete segment">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -39,55 +40,11 @@ function displaySegmentedTranscription(segments, isSorted = true) {
         container.appendChild(div);
     });
 
-    container.addEventListener('mousedown', event => {
-        const segmentDiv = event.target.closest('.segment-container');
-        if (segmentDiv) {
-            const index = parseInt(segmentDiv.getAttribute('data-index'));
-            handleSegmentClick(index);
-        }
-    });
-
-    container.addEventListener('input', event => {
-        if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
-            const index = parseInt(event.target.getAttribute('data-index'));
-            const videoDuration = getDuration();
-            const startInput = document.querySelector(`.segment-start[data-index="${index}"]`);
-            const endInput = document.querySelector(`.segment-end[data-index="${index}"]`);
-            
-            // Ensure start time is not negative and not greater than end time or video duration
-            startInput.value = Math.max(0, Math.min(parseFloat(startInput.value), parseFloat(endInput.value), videoDuration));
-            
-            // Ensure end time is not less than start time and not greater than video duration
-            endInput.value = Math.min(Math.max(parseFloat(startInput.value), parseFloat(endInput.value)), videoDuration);
-            
-            updateSegmentTimes(index);
-            if (index === currentlySelectedSegmentIndex) {
-                playSegment(index, true); // Force replay
-            }
-        } else if (event.target.classList.contains('segment-text')) {
-            const index = parseInt(event.target.getAttribute('data-index'));
-            updateSegmentText(index);
-        }
-    });
-
-    container.addEventListener('click', event => {
-        const removeButton = event.target.closest('.remove-segment');
-        if (removeButton) {
-            const index = parseInt(removeButton.getAttribute('data-index'));
-            removeSegment(index);
-        }
-        
-        const retranscribeButton = event.target.closest('.retranscribe-segment');
-        if (retranscribeButton) {
-            const index = parseInt(retranscribeButton.getAttribute('data-index'));
-            retranscribeSegment(index);  // This function is now in transcription.js
-        }
-    });
-
     isListSorted = isSorted;
     updateSortButtonVisibility();
 }
 
+// Updates the visibility of the sort button based on whether the list is sorted
 function updateSortButtonVisibility() {
     const sortButton = document.getElementById('sort-segments');
     if (isListSorted) {
@@ -97,15 +54,17 @@ function updateSortButtonVisibility() {
     }
 }
 
+// Handles the click event on a segment
 function handleSegmentClick(index) {
     if (currentlySelectedSegmentIndex !== index) {
         currentlySelectedSegmentIndex = index;
         highlightSegment(index);
         playSegment(index);
-        clearSelectionButton.classList.remove('hidden');
+        document.getElementById('clear-selection').classList.remove('hidden');
     }
 }
 
+// Highlights the selected segment in the UI
 function highlightSegment(index) {
     document.querySelectorAll('.segment-container').forEach(el => {
         el.classList.remove('bg-yellow-100');
@@ -114,20 +73,24 @@ function highlightSegment(index) {
     
     if (index !== null) {
         const segmentDiv = document.querySelector(`.segment-container[data-index="${index}"]`);
-        segmentDiv.classList.remove('bg-white');
-        segmentDiv.classList.add('bg-yellow-100');
+        if (segmentDiv) {
+            segmentDiv.classList.remove('bg-white');
+            segmentDiv.classList.add('bg-yellow-100');
+        }
     }
 }
 
+// Clears the current segment selection
 function clearSegmentSelection() {
     currentlySelectedSegmentIndex = null;
     highlightSegment(null);
     resetVideoPlayer();
-    clearSelectionButton.classList.add('hidden');
+    document.getElementById('clear-selection').classList.add('hidden');
 }
 
+// Updates the UI when a segment is played
 function onSegmentPlay(index) {
     currentlySelectedSegmentIndex = index;
     highlightSegment(index);
-    clearSelectionButton.classList.remove('hidden');
+    document.getElementById('clear-selection').classList.remove('hidden');
 }

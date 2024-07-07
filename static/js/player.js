@@ -76,8 +76,8 @@ function resetVideoPlayer() {
 
 function initializeYouTubePlayer(videoId) {
     if (player) {
-        // If player already exists, just load the new video
-        player.loadVideoById(videoId);
+        // If player already exists, just load the new video without autoplay
+        player.cueVideoById(videoId);
     } else {
         // If player doesn't exist, create a new one
         const playerDiv = document.getElementById('video-player');
