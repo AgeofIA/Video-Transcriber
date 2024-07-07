@@ -38,25 +38,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Handle segment selection
     segmentedTranscription.addEventListener('mousedown', event => {
+        const segmentDiv = event.target.closest('.segment-container');
+        if (segmentDiv) {
+            const index = parseInt(segmentDiv.getAttribute('data-index'));
+            handleSegmentClick(index);
+        }
+    });
+
+    // Prevent selection when interacting with inputs and textareas
+    segmentedTranscription.addEventListener('click', event => {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
             event.stopPropagation();
-        } else {
-            const segmentDiv = event.target.closest('.segment-container');
-            if (segmentDiv) {
-                const index = parseInt(segmentDiv.getAttribute('data-index'));
-                handleSegmentClick(index);
-            }
         }
     });
 
     // Handle updates to segment times and text
     segmentedTranscription.addEventListener('input', event => {
-        if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
-            const index = parseInt(event.target.getAttribute('data-index'));
-            updateSegmentTimes(index);
-        } else if (event.target.classList.contains('segment-text')) {
-            const index = parseInt(event.target.getAttribute('data-index'));
-            updateSegmentText(index);
+        const segmentDiv = event.target.closest('.segment-container');
+        if (segmentDiv) {
+            const index = parseInt(segmentDiv.getAttribute('data-index'));
+            if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
+                updateSegmentTimes(index);
+            } else if (event.target.classList.contains('segment-text')) {
+                updateSegmentText(index);
+            }
         }
     });
 
@@ -64,13 +69,15 @@ document.addEventListener('DOMContentLoaded', () => {
     segmentedTranscription.addEventListener('click', event => {
         const removeButton = event.target.closest('.remove-segment');
         if (removeButton) {
-            const index = parseInt(removeButton.getAttribute('data-index'));
+            event.stopPropagation(); // Prevent segment selection
+            const index = parseInt(removeButton.closest('.segment-container').getAttribute('data-index'));
             removeSegment(index);
         }
         
         const retranscribeButton = event.target.closest('.retranscribe-segment');
         if (retranscribeButton) {
-            const index = parseInt(retranscribeButton.getAttribute('data-index'));
+            event.stopPropagation(); // Prevent segment selection
+            const index = parseInt(retranscribeButton.closest('.segment-container').getAttribute('data-index'));
             retranscribeSegment(index);
         }
     });
