@@ -3,3 +3,4 @@ __pycache__/
 .env
 transcription_cache/
 .DS_Store
+flask_session/

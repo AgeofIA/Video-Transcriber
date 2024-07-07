@@ -4,6 +4,7 @@ import pytube
 from dotenv import load_dotenv
 from openai import OpenAI
 from urllib.parse import urlparse, parse_qs
+from moviepy.editor import VideoFileClip
 import csv
 import io
 
@@ -108,3 +109,32 @@ def format_time(seconds):
     seconds = seconds % 60
     milliseconds = int((seconds - int(seconds)) * 1000)
     return f"{hours:02d}:{minutes:02d}:{int(seconds):02d},{milliseconds:03d}"
+
+def retranscribe_segment(video_file_path, start_time, end_time):
+    # Extract the audio segment
+    video = VideoFileClip(video_file_path)
+    audio_segment = video.audio.subclip(start_time, end_time)
+    
+    # Save the audio segment to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio_file:
+        audio_segment.write_audiofile(temp_audio_file.name)
+    
+    # Transcribe the audio segment
+    with open(temp_audio_file.name, "rb") as audio_file:
+        transcription = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="verbose_json"
+        )
+    
+    # Clean up the temporary audio file
+    os.unlink(temp_audio_file.name)
+    
+    # Create a new segment with the transcription result
+    new_segment = {
+        'start': start_time,
+        'end': end_time,
+        'text': transcription.text.strip()
+    }
+    
+    return new_segment

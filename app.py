@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_file, session
 from flask_session import Session
-from core import download_video, transcribe_audio, get_youtube_id, create_csv, create_srt, add_segment, remove_segment, sort_segments, is_sorted
+from core import download_video, transcribe_audio, get_youtube_id, create_csv, create_srt, add_segment, remove_segment, sort_segments, is_sorted, retranscribe_segment
 import os
 import io
 
@@ -169,9 +169,37 @@ def sort_transcription_segments():
     
     return jsonify({'success': True, 'transcription': session['transcription']})
 
-@app.route('/debug_session')
-def debug_session():
-    return jsonify(dict(session))
+# Add this new route
+@app.route('/retranscribe_segment', methods=['POST'])
+def retranscribe_segment_route():
+    if 'transcription' not in session:
+        return jsonify({'error': 'No transcription available'}), 400
+    
+    data = request.json
+    index = data['index']
+    youtube_url = session['youtube_url']
+    
+    try:
+        # Download the video
+        video_file_path = download_video(youtube_url)
+        
+        # Get the segment to retranscribe
+        segment = session['transcription']['segments'][index]
+        
+        # Retranscribe the segment
+        new_segment = retranscribe_segment(video_file_path, segment['start'], segment['end'])
+        
+        # Update the transcription in the session
+        session['transcription']['segments'][index] = new_segment
+        session['transcription']['text'] = ' '.join([seg['text'].strip() for seg in session['transcription']['segments']])
+        session.modified = True
+        
+        # Clean up the temporary video file
+        os.unlink(video_file_path)
+        
+        return jsonify({'success': True, 'segment': new_segment})
+    except Exception as e:
+        return jsonify({'error': f'An error occurred while re-transcribing the segment: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5013)

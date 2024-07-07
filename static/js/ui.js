@@ -62,6 +62,12 @@ function displaySegmentedTranscription(segments, isSorted = true) {
             const index = parseInt(removeButton.getAttribute('data-index'));
             removeSegment(index);
         }
+        
+        const retranscribeButton = event.target.closest('.retranscribe-segment');
+        if (retranscribeButton) {
+            const index = parseInt(retranscribeButton.getAttribute('data-index'));
+            retranscribeSegment(index);  // This function is now in transcription.js
+        }
     });
 
     isListSorted = isSorted;
