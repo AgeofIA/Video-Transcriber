@@ -4,24 +4,28 @@ function checkForCachedTranscription() {
     fetch('/get_cached_transcription')
         .then(response => {
             if (!response.ok) {
-                throw new Error('No cached transcription available');
+                if (response.status === 404) {
+                    console.log('No cached transcription found');
+                    return;
+                }
+                throw new Error('Error fetching cached transcription');
             }
             return response.json();
         })
         .then(data => {
-            if (data.transcription) {
+            if (data && data.transcription) {
                 transcription = data.transcription;
                 document.getElementById('full-transcription').value = data.transcription.text;
                 displaySegmentedTranscription(data.transcription.segments, data.transcription.is_sorted);
                 initializeYouTubePlayer(data.transcription.youtube_id);
                 document.getElementById('transcription-result').classList.remove('hidden');
             }
-            if (data.youtube_url) {
+            if (data && data.youtube_url) {
                 document.getElementById('youtube-url').value = data.youtube_url;
             }
         })
         .catch(error => {
-            console.log('No cached transcription found:', error);
+            console.error('Error checking for cached transcription:', error);
         });
 }
 

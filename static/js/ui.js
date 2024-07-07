@@ -14,17 +14,22 @@ function displaySegmentedTranscription(segments, isSorted = true) {
         div.innerHTML = `
             <textarea class="w-full p-2 border border-slate-300 rounded-md focus:outline-none focus:ring-0 segment-text" data-index="${index}" rows="2">${segment.text}</textarea>
             <div class="mt-1 flex justify-between items-center">
-                <button class="remove-segment p-1 text-red-500 hover:text-red-700 rounded-full hover:bg-red-100 transition duration-300 ease-in-out" data-index="${index}">
+                <button class="remove-segment p-1 text-red-500 hover:text-red-700 rounded-full hover:bg-red-100 transition duration-300 ease-in-out" data-index="${index}" title="Delete segment">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                 </button>
+                <span class="text-sm text-slate-600 segment-time">${duration}s</span>
                 <div class="flex items-center space-x-4">
                     <input type="number" class="segment-start w-20 p-1 border border-slate-300 rounded-md focus:outline-none focus:ring-0" value="${segment.start.toFixed(2)}" step="0.01" min="0" data-index="${index}">
                     <span class="text-sm text-slate-600">to</span>
                     <input type="number" class="segment-end w-20 p-1 border border-slate-300 rounded-md focus:outline-none focus:ring-0" value="${segment.end.toFixed(2)}" step="0.01" min="0" data-index="${index}">
                 </div>
-                <span class="text-sm text-slate-600 segment-time">${duration}s</span>
+                <button class="retranscribe-segment p-1 text-green-500 hover:text-green-700 rounded-full hover:bg-green-100 transition duration-300 ease-in-out" data-index="${index}" title="Re-transcribe segment">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
             </div>
         `;
         container.appendChild(div);

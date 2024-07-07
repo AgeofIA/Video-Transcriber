@@ -1,10 +1,18 @@
 from flask import Flask, render_template, request, jsonify, send_file, session
+from flask_session import Session
 from core import download_video, transcribe_audio, get_youtube_id, create_csv, create_srt, add_segment, remove_segment, sort_segments, is_sorted
 import os
 import io
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session encryption
+
+# Configure server-side sessions
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_FILE_DIR'] = os.path.join(app.root_path, 'flask_session')
+Session(app)
 
 @app.route('/')
 def index():
@@ -160,6 +168,10 @@ def sort_transcription_segments():
     session.modified = True
     
     return jsonify({'success': True, 'transcription': session['transcription']})
+
+@app.route('/debug_session')
+def debug_session():
+    return jsonify(dict(session))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5013)
