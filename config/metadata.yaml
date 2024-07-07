@@ -1,0 +1,2 @@
+name: YouTube Audio Transcriber
+description: A Streamlit app that downloads audio from YouTube videos, converts it if necessary, and uses OpenAI's Whisper API to transcribe the audio into text, displaying the results in a user-friendly interface.
