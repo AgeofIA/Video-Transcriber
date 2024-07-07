@@ -68,37 +68,33 @@ function onYouTubeIframeAPIReady() {
 
 function resetVideoPlayer() {
     if (player) {
-        player.destroy();
-        player = null;
+        player.seekTo(0);
+        player.pauseVideo();
     }
     currentSegment = null;
-    const playerDiv = document.getElementById('youtube-player');
-    playerDiv.innerHTML = ''; // Clear the player div
 }
 
 function initializeYouTubePlayer(videoId) {
-    resetVideoPlayer(); // Ensure the player is reset before initializing
-    const playerDiv = document.getElementById('video-player');
-    playerDiv.classList.remove('hidden');
-    
-    player = new YT.Player('youtube-player', {
-        height: '360',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-            'autoplay': 0,
-            'controls': 1
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
+    if (player) {
+        // If player already exists, just load the new video
+        player.loadVideoById(videoId);
+    } else {
+        // If player doesn't exist, create a new one
+        const playerDiv = document.getElementById('video-player');
+        playerDiv.classList.remove('hidden');
+        
+        player = new YT.Player('youtube-player', {
+            height: '360',
+            width: '100%',
+            videoId: videoId,
+            playerVars: {
+                'autoplay': 0,
+                'controls': 1
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
 }
-
-// Export functions that need to be accessed from other files
-window.initializeYouTubePlayer = initializeYouTubePlayer;
-window.playSegment = playSegment;
-window.resetVideoPlayer = resetVideoPlayer;
-window.setAutoplayEnabled = setAutoplayEnabled;
-window.getDuration = getDuration;

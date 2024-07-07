@@ -1,22 +1,6 @@
 let currentlySelectedSegmentIndex = null;
 const clearSelectionButton = document.getElementById('clear-selection');
-let isListSorted = true; // Add this line to track sorting status
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('transcribe-btn').addEventListener('click', transcribeVideo);
-    document.getElementById('download-csv').addEventListener('click', downloadCSV);
-    document.getElementById('download-txt').addEventListener('click', downloadTXT);
-    document.getElementById('download-srt').addEventListener('click', downloadSRT);
-    clearSelectionButton.addEventListener('click', clearSegmentSelection);
-    document.getElementById('add-segment').addEventListener('click', addSegment);
-    document.getElementById('sort-segments').addEventListener('click', sortSegments);
-    
-    // Event listener for autoplay toggle
-    const autoplayToggle = document.getElementById('autoplay-toggle');
-    autoplayToggle.addEventListener('change', (event) => {
-        setAutoplayEnabled(event.target.checked);
-    });
-});
+let isListSorted = true;
 
 function displaySegmentedTranscription(segments, isSorted = true) {
     const container = document.getElementById('segmented-transcription');
@@ -88,26 +72,6 @@ function updateSortButtonVisibility() {
     }
 }
 
-function updateSegmentTimes(index) {
-    const segmentDiv = document.querySelector(`.segment-container[data-index="${index}"]`);
-    const startInput = segmentDiv.querySelector('.segment-start');
-    const endInput = segmentDiv.querySelector('.segment-end');
-    const timeSpan = segmentDiv.querySelector('.segment-time');
-
-    const newStart = parseFloat(startInput.value);
-    const newEnd = parseFloat(endInput.value);
-    const duration = (newEnd - newStart).toFixed(2);
-
-    timeSpan.textContent = `${duration}s`;
-
-    transcription.segments[index].start = newStart;
-    transcription.segments[index].end = newEnd;
-
-    saveSegmentChanges(index);
-
-    isListSorted = false;
-    updateSortButtonVisibility();
-}
 function handleSegmentClick(index) {
     if (currentlySelectedSegmentIndex !== index) {
         currentlySelectedSegmentIndex = index;
@@ -137,63 +101,8 @@ function clearSegmentSelection() {
     clearSelectionButton.classList.add('hidden');
 }
 
-function updateSegmentText(index) {
-    const segmentDiv = document.querySelector(`.segment-container[data-index="${index}"]`);
-    const textArea = segmentDiv.querySelector('.segment-text');
-
-    transcription.segments[index].text = textArea.value;
-    saveSegmentChanges(index);
-    debouncedUpdateFullTranscription();
-}
-
-document.getElementById('segmented-transcription').addEventListener('mousedown', event => {
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-        event.stopPropagation();
-    }
-});
-
-function sortSegments() {
-    fetch('/sort_segments', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            transcription = data.transcription;
-            displaySegmentedTranscription(transcription.segments);
-            updateFullTranscription();
-            console.log('Segments sorted successfully');
-            isListSorted = true;
-            updateSortButtonVisibility();
-        } else {
-            console.error('Failed to sort segments');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
 function onSegmentPlay(index) {
     currentlySelectedSegmentIndex = index;
     highlightSegment(index);
     clearSelectionButton.classList.remove('hidden');
 }
-
-// Debounce function to limit the frequency of updates
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-const debouncedUpdateFullTranscription = debounce(updateFullTranscription, 300);

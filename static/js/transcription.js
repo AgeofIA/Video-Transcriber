@@ -1,9 +1,5 @@
 let transcription;
 
-document.addEventListener('DOMContentLoaded', function() {
-    checkForCachedTranscription();
-});
-
 function checkForCachedTranscription() {
     fetch('/get_cached_transcription')
         .then(response => {
@@ -72,96 +68,6 @@ function transcribeVideo() {
         loading.classList.add('hidden');
         errorMessage.textContent = error.message;
         errorMessage.classList.remove('hidden');
-    });
-}
-
-function saveSegmentChanges(index) {
-    const segment = transcription.segments[index];
-
-    fetch('/update_segment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            index: index,
-            start_time: segment.start,
-            end_time: segment.end,
-            text: segment.text
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Segment updated successfully');
-            updateFullTranscription();
-        } else {
-            console.error('Failed to update segment');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
-function addSegment() {
-    const videoDuration = player.getDuration();
-    
-    fetch('/add_segment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            start_time: 0,
-            end_time: videoDuration,
-            text: ""
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            transcription = data.transcription;
-            displaySegmentedTranscription(transcription.segments, data.is_sorted);
-            updateFullTranscription();
-            isListSorted = data.is_sorted;
-            updateSortButtonVisibility();
-        } else {
-            console.error('Failed to add segment');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
-function removeSegment(index) {
-    fetch('/remove_segment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            index: index
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            transcription = data.transcription;
-            displaySegmentedTranscription(transcription.segments);
-            updateFullTranscription();
-            
-            // If we removed the currently playing segment, reset the player
-            if (index === currentlySelectedSegmentIndex) {
-                clearSegmentSelection();
-            }
-        } else {
-            console.error('Failed to remove segment');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
     });
 }
 
