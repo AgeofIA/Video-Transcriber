@@ -95,23 +95,30 @@ function removeSegment(index) {
     });
 }
 
-function updateSegmentTimes(index, isManualInput = false) {
+function updateSegmentTimes(index, isManualInput = false, timeType = 'both') {
     const segmentDiv = document.querySelector(`.segment-container[data-index="${index}"]`);
     const startInput = segmentDiv.querySelector('.segment-start');
     const endInput = segmentDiv.querySelector('.segment-end');
     const timeSpan = segmentDiv.querySelector('.segment-time');
 
     const videoDuration = getDuration();
-    const newStart = Math.max(0, Math.min(parseFloat(startInput.value), parseFloat(endInput.value), videoDuration));
-    const newEnd = Math.min(Math.max(parseFloat(startInput.value), parseFloat(endInput.value)), videoDuration);
+    let newStart = parseFloat(startInput.value);
+    let newEnd = parseFloat(endInput.value);
 
-    if (!isManualInput || (Math.abs(newStart - transcription.segments[index].start) > 0.01 || Math.abs(newEnd - transcription.segments[index].end) > 0.01)) {
+    if (timeType === 'start' || timeType === 'both') {
+        newStart = Math.max(0, Math.min(newStart, newEnd, videoDuration));
         startInput.value = newStart.toFixed(2);
+    }
+
+    if (timeType === 'end' || timeType === 'both') {
+        newEnd = Math.min(Math.max(newStart, newEnd), videoDuration);
         endInput.value = newEnd.toFixed(2);
+    }
 
-        const duration = (newEnd - newStart).toFixed(2);
-        timeSpan.textContent = `${duration}s`;
+    const duration = (newEnd - newStart).toFixed(2);
+    timeSpan.textContent = `${duration}s`;
 
+    if (!isManualInput || Math.abs(newStart - transcription.segments[index].start) > 0.01 || Math.abs(newEnd - transcription.segments[index].end) > 0.01) {
         transcription.segments[index].start = newStart;
         transcription.segments[index].end = newEnd;
 
@@ -121,7 +128,7 @@ function updateSegmentTimes(index, isManualInput = false) {
         updateSortButtonVisibility();
     }
 
-    return newStart;
+    return timeType === 'start' ? newStart : newEnd;
 }
 
 function updateSegmentText(index) {

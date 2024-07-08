@@ -14,10 +14,10 @@ function debounce(func, wait) {
 // Create a debounced version of updateFullTranscription
 let debouncedUpdateFullTranscription;
 
-const debouncedUpdateSegmentTimes = debounce((index, isManualInput) => {
-    const newStartTime = updateSegmentTimes(index, isManualInput);
-    if (isManualInput) {
-        playSegment(index, true, newStartTime);
+const debouncedUpdateSegmentTimes = debounce((index, isManualInput, timeType) => {
+    const newTime = updateSegmentTimes(index, isManualInput, timeType);
+    if (isManualInput && timeType === 'start') {
+        playSegment(index, true, newTime);
     }
 }, 1000);
 
@@ -78,19 +78,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const segmentDiv = event.target.closest('.segment-container');
         if (segmentDiv) {
             const index = parseInt(segmentDiv.getAttribute('data-index'));
-            if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
-                const isManualInput = event.inputType === 'insertText' || event.inputType === 'deleteContentBackward';
-                if (isManualInput) {
-                    debouncedUpdateSegmentTimes(index, true);
-                } else {
-                    const newStartTime = updateSegmentTimes(index, false);
-                    playSegment(index, true, newStartTime);
-                }
+            if (event.target.classList.contains('segment-start')) {
+                handleStartTimeUpdate(index, event.target.value, event.inputType);
+            } else if (event.target.classList.contains('segment-end')) {
+                handleEndTimeUpdate(index, event.target.value, event.inputType);
             } else if (event.target.classList.contains('segment-text')) {
                 updateSegmentText(index);
             }
         }
     });
+
+    function handleStartTimeUpdate(index, value, inputType) {
+        const isManualInput = inputType === 'insertText' || inputType === 'deleteContentBackward';
+        if (isManualInput) {
+            debouncedUpdateSegmentTimes(index, true, 'start');
+        } else {
+            const newStartTime = updateSegmentTimes(index, false, 'start');
+            playSegment(index, true, newStartTime);
+        }
+    }
+
+    function handleEndTimeUpdate(index, value, inputType) {
+        const isManualInput = inputType === 'insertText' || inputType === 'deleteContentBackward';
+        if (isManualInput) {
+            debouncedUpdateSegmentTimes(index, true, 'end');
+        } else {
+            updateSegmentTimes(index, false, 'end');
+        }
+    }
 
     // Handle segment removal and retranscription
     segmentedTranscription.addEventListener('click', event => {
