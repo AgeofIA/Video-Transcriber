@@ -6,70 +6,7 @@
     <title>YouTube Video Transcriber</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
-    <style>
-        /* Toggle switch styles */
-        .switch {
-          position: relative;
-          display: inline-block;
-          width: 60px;
-          height: 34px;
-        }
-        .switch input {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-        .slider {
-          position: absolute;
-          cursor: pointer;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: #ccc;
-          transition: .4s;
-          border-radius: 34px;
-        }
-        .slider:before {
-          position: absolute;
-          content: "";
-          height: 26px;
-          width: 26px;
-          left: 4px;
-          bottom: 4px;
-          background-color: white;
-          transition: .4s;
-          border-radius: 50%;
-        }
-        input:checked + .slider {
-          background-color: #2196F3;
-        }
-        input:checked + .slider:before {
-          transform: translateX(26px);
-        }
-
-        /* Scrollbar styles */
-        #segmented-transcription {
-            overflow-y: scroll;
-            scrollbar-width: thin;
-            scrollbar-color: #CBD5E0 #EDF2F7;
-            padding-right: 4px; /* Reduced padding */
-        }
-
-        #segmented-transcription::-webkit-scrollbar {
-            width: 6px; /* Slightly narrower scrollbar */
-        }
-
-        #segmented-transcription::-webkit-scrollbar-track {
-            background: #EDF2F7;
-        }
-
-        #segmented-transcription::-webkit-scrollbar-thumb {
-            background-color: #CBD5E0;
-            border-radius: 3px;
-            border: 1px solid #EDF2F7;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="bg-slate-100 min-h-screen">
     <div class="container mx-auto px-4 py-10">
@@ -142,7 +79,7 @@
                         </div>
                     </div>
                     <div id="video-player" class="w-full md:w-1/2 sticky top-0">
-                        <div class="flex justify-between items-center mb-2.5">
+                        <div class="flex justify-between items-center mb-2.5 mx-3">
                             <div class="flex items-center">
                                 <span class="mr-2 text-sm text-slate-700">Autoplay</span>
                                 <label class="switch">
@@ -159,6 +96,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/icons.js') }}"></script>
     <script src="{{ url_for('static', filename='js/player.js') }}"></script>
     <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/transcription.js') }}"></script>
