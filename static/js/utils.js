@@ -14,6 +14,13 @@ function debounce(func, wait) {
 // Create a debounced version of updateFullTranscription
 let debouncedUpdateFullTranscription;
 
+const debouncedUpdateSegmentTimes = debounce((index, isManualInput) => {
+    const newStartTime = updateSegmentTimes(index, isManualInput);
+    if (isManualInput) {
+        playSegment(index, true, newStartTime);
+    }
+}, 1000);
+
 // Set up all event listeners when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize debouncedUpdateFullTranscription once updateFullTranscription is available
@@ -57,11 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const segmentDiv = event.target.closest('.segment-container');
         if (segmentDiv) {
             const index = parseInt(segmentDiv.getAttribute('data-index'));
-            if (event.target.classList.contains('segment-start')) {
-                const newStartTime = updateSegmentTimes(index);
-                playSegment(index, true, newStartTime);
-            } else if (event.target.classList.contains('segment-end')) {
-                updateSegmentTimes(index);
+            if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
+                const isManualInput = event.inputType === 'insertText' || event.inputType === 'deleteContentBackward';
+                if (isManualInput) {
+                    debouncedUpdateSegmentTimes(index, true);
+                } else {
+                    const newStartTime = updateSegmentTimes(index, false);
+                    playSegment(index, true, newStartTime);
+                }
             } else if (event.target.classList.contains('segment-text')) {
                 updateSegmentText(index);
             }

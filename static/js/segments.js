@@ -95,7 +95,7 @@ function removeSegment(index) {
     });
 }
 
-function updateSegmentTimes(index) {
+function updateSegmentTimes(index, isManualInput = false) {
     const segmentDiv = document.querySelector(`.segment-container[data-index="${index}"]`);
     const startInput = segmentDiv.querySelector('.segment-start');
     const endInput = segmentDiv.querySelector('.segment-end');
@@ -105,19 +105,21 @@ function updateSegmentTimes(index) {
     const newStart = Math.max(0, Math.min(parseFloat(startInput.value), parseFloat(endInput.value), videoDuration));
     const newEnd = Math.min(Math.max(parseFloat(startInput.value), parseFloat(endInput.value)), videoDuration);
 
-    startInput.value = newStart.toFixed(2);
-    endInput.value = newEnd.toFixed(2);
+    if (!isManualInput || (Math.abs(newStart - transcription.segments[index].start) > 0.01 || Math.abs(newEnd - transcription.segments[index].end) > 0.01)) {
+        startInput.value = newStart.toFixed(2);
+        endInput.value = newEnd.toFixed(2);
 
-    const duration = (newEnd - newStart).toFixed(2);
-    timeSpan.textContent = `${duration}s`;
+        const duration = (newEnd - newStart).toFixed(2);
+        timeSpan.textContent = `${duration}s`;
 
-    transcription.segments[index].start = newStart;
-    transcription.segments[index].end = newEnd;
+        transcription.segments[index].start = newStart;
+        transcription.segments[index].end = newEnd;
 
-    saveSegmentChanges(index);
+        saveSegmentChanges(index);
 
-    isListSorted = false;
-    updateSortButtonVisibility();
+        isListSorted = false;
+        updateSortButtonVisibility();
+    }
 
     return newStart;
 }
