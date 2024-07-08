@@ -14,11 +14,12 @@ function onPlayerStateChange(event) {
     }
 }
 
-function playSegment(index, forceReplay = false) {
+function playSegment(index, forceReplay = false, newStartTime = null) {
     const segment = transcription.segments[index];
     if (currentSegment !== segment || forceReplay) {
         currentSegment = segment;
-        player.seekTo(currentSegment.start);
+        const startTime = newStartTime !== null ? newStartTime : segment.start;
+        player.seekTo(startTime);
         if (autoplayEnabled) {
             player.playVideo();
         } else {

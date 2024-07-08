@@ -119,7 +119,7 @@ function updateSegmentTimes(index) {
     isListSorted = false;
     updateSortButtonVisibility();
 
-    return newStart; // Return the new start time
+    return newStart;
 }
 
 function updateSegmentText(index) {

@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up event listeners for segmented transcription interactions
     const segmentedTranscription = document.getElementById('segmented-transcription');
-    
+
     // Handle segment selection
     segmentedTranscription.addEventListener('mousedown', event => {
         const segmentDiv = event.target.closest('.segment-container');
@@ -57,7 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const segmentDiv = event.target.closest('.segment-container');
         if (segmentDiv) {
             const index = parseInt(segmentDiv.getAttribute('data-index'));
-            if (event.target.classList.contains('segment-start') || event.target.classList.contains('segment-end')) {
+            if (event.target.classList.contains('segment-start')) {
+                const newStartTime = updateSegmentTimes(index);
+                playSegment(index, true, newStartTime);
+            } else if (event.target.classList.contains('segment-end')) {
                 updateSegmentTimes(index);
             } else if (event.target.classList.contains('segment-text')) {
                 updateSegmentText(index);
