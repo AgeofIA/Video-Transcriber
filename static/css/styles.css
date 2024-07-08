@@ -65,3 +65,22 @@ input:checked + .slider:before {
     border-radius: 3px;
     border: 1px solid #EDF2F7;
 }
+
+/* Download dropdown styles */
+#download-options {
+    position: absolute;
+    z-index: 10;
+    min-width: 200px;
+}
+
+#download-options button {
+    transition: background-color 0.3s ease;
+}
+
+#download-dropdown-btn svg {
+    transition: transform 0.3s ease;
+}
+
+#download-dropdown-btn.active svg {
+    transform: rotate(180deg);
+}

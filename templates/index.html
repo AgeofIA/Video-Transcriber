@@ -25,54 +25,47 @@
             <p class="text-lg text-center text-slate-600">Processing video... Please wait.</p>
             <div class="loader mx-auto mt-4 w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
+
+        <!-- Download section -->
+        <div id="download-section" class="mb-4 flex justify-center hidden">
+            <div class="relative">
+                <button id="download-dropdown-btn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out flex items-center">
+                    <span>Download</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div id="download-options" class="hidden mt-2 bg-white border border-gray-200 rounded-lg shadow-lg absolute left-1/2 transform -translate-x-1/2">
+                    <button id="download-srt" class="w-full text-left px-4 py-2 hover:bg-gray-100">Subtitles (.srt)</button>
+                    <button id="download-txt" class="w-full text-left px-4 py-2 hover:bg-gray-100">Full Transcript (.txt)</button>
+                    <button id="download-csv" class="w-full text-left px-4 py-2 hover:bg-gray-100">Segments (.csv)</button>
+                </div>
+            </div>
+        </div>
         
-        <div id="transcription-result" class="hidden space-y-6">
+        <div id="transcription-result" class="hidden space-y-10">
             <div>
                 <h2 class="text-xl font-bold mb-4 text-slate-800">Full Transcript:</h2>
                 <div id="full-transcription" class="w-full h-40 p-4 border border-slate-300 rounded-lg focus:outline-none focus:ring-0 overflow-y-auto" contenteditable="false"></div>
             </div>
             
-            <div class="flex flex-col items-center">
-                <div class="flex items-center mb-2">
-                    <span class="text-lg font-medium text-slate-800">Download:</span>
-                    <div class="flex justify-center space-x-4 ml-4">
-                        <button id="download-srt" class="flex items-center justify-center w-28 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition duration-300 ease-in-out">
-                            <div class="flex flex-col items-center">
-                                <span class="font-medium">Subtitles</span>
-                                <span class="text-xs">srt</span>
-                            </div>
-                        </button>
-                        <button id="download-txt" class="flex items-center justify-center w-28 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition duration-300 ease-in-out">
-                            <div class="flex flex-col items-center">
-                                <span class="font-medium">Full</span>
-                                <span class="text-xs">txt</span>
-                            </div>
-                        </button>
-                        <button id="download-csv" class="flex items-center justify-center w-28 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition duration-300 ease-in-out">
-                            <div class="flex flex-col items-center">
-                                <span class="font-medium">Segments</span>
-                                <span class="text-xs">csv</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
             <div>
-                <h2 class="text-xl font-bold mb-2 text-slate-800">Segments:</h2>
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="w-full md:w-1/2 space-y-2">
-                        <div class="flex justify-end space-x-4 mr-4 mb-2">
-                            <button id="sort-segments" class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 ease-in-out">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
-                                </svg>
-                            </button>
-                            <button id="add-segment" class="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300 ease-in-out">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
+                        <div class="flex justify-between items-center mr-4 mb-2">
+                            <h2 class="text-xl font-bold text-slate-800">Segments:</h2>
+                            <div class="flex space-x-4">
+                                <button id="sort-segments" class="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 ease-in-out">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
+                                    </svg>
+                                </button>
+                                <button id="add-segment" class="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300 ease-in-out">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <div id="segmented-transcription" class="max-h-[600px] overflow-y-auto">
                             <!-- Segment containers will be added here dynamically -->
@@ -102,5 +95,6 @@
     <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/segments.js') }}"></script>
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/download.js') }}"></script>
 </body>
 </html>

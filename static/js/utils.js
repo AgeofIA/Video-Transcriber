@@ -40,6 +40,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-segment').addEventListener('click', addSegment);
     document.getElementById('sort-segments').addEventListener('click', sortSegments);
 
+    // Event listeners for download functionality
+    document.getElementById('download-dropdown-btn').addEventListener('click', toggleDownloadDropdown);
+    document.getElementById('download-srt').addEventListener('click', () => handleDownload('srt'));
+    document.getElementById('download-txt').addEventListener('click', () => handleDownload('txt'));
+    document.getElementById('download-csv').addEventListener('click', () => handleDownload('csv'));
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+        const downloadSection = document.getElementById('download-section');
+        if (!downloadSection.contains(event.target)) {
+            closeDownloadDropdown();
+        }
+    });
+
     // Set up event listeners for segmented transcription interactions
     const segmentedTranscription = document.getElementById('segmented-transcription');
 

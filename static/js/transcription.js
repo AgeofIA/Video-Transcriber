@@ -19,6 +19,7 @@ function checkForCachedTranscription() {
                 displaySegmentedTranscription(data.transcription.segments, data.transcription.is_sorted);
                 initializeYouTubePlayer(data.transcription.youtube_id);
                 document.getElementById('transcription-result').classList.remove('hidden');
+                document.getElementById('download-section').classList.remove('hidden');
             }
             if (data && data.youtube_url) {
                 document.getElementById('youtube-url').value = data.youtube_url;
@@ -34,10 +35,12 @@ function transcribeVideo() {
     const loading = document.getElementById('loading');
     const result = document.getElementById('transcription-result');
     const errorMessage = document.getElementById('error-message');
+    const downloadSection = document.getElementById('download-section');
     
     loading.classList.remove('hidden');
     result.classList.add('hidden');
     errorMessage.classList.add('hidden');
+    downloadSection.classList.add('hidden');
     errorMessage.textContent = '';
     
     fetch('/transcribe', {
@@ -58,6 +61,7 @@ function transcribeVideo() {
     .then(data => {
         loading.classList.add('hidden');
         result.classList.remove('hidden');
+        downloadSection.classList.remove('hidden');
         
         transcription = data;
         updateFullTranscription();
@@ -166,16 +170,4 @@ function retranscribeSegment(index) {
         retranscribeButton.innerHTML = Icons.RETRANSCRIBE;
         alert('An error occurred while re-transcribing the segment. Please try again.');
     });
-}
-
-function downloadCSV() {
-    window.location.href = '/download_csv';
-}
-
-function downloadTXT() {
-    window.location.href = '/download_txt';
-}
-
-function downloadSRT() {
-    window.location.href = '/download_srt';
 }
