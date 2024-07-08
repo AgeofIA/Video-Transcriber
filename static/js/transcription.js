@@ -15,7 +15,7 @@ function checkForCachedTranscription() {
         .then(data => {
             if (data && data.transcription) {
                 transcription = data.transcription;
-                document.getElementById('full-transcription').value = data.transcription.text;
+                updateFullTranscription();
                 displaySegmentedTranscription(data.transcription.segments, data.transcription.is_sorted);
                 initializeYouTubePlayer(data.transcription.youtube_id);
                 document.getElementById('transcription-result').classList.remove('hidden');
@@ -60,7 +60,7 @@ function transcribeVideo() {
         result.classList.remove('hidden');
         
         transcription = data;
-        document.getElementById('full-transcription').value = data.text;
+        updateFullTranscription();
         displaySegmentedTranscription(data.segments, data.is_sorted);
         
         // Reset and reinitialize the video player with the new video ID
@@ -76,8 +76,50 @@ function transcribeVideo() {
 }
 
 function updateFullTranscription() {
-    transcription.text = transcription.segments.map(segment => segment.text).join(' ');
-    document.getElementById('full-transcription').value = transcription.text;
+    const fullTranscriptDiv = document.getElementById('full-transcription');
+    fullTranscriptDiv.innerHTML = '';
+    
+    if (!transcription || !transcription.segments) {
+        console.error('Transcription or segments are missing');
+        return;
+    }
+    
+    const colors = ['bg-red-50', 'bg-blue-50', 'bg-green-50', 'bg-yellow-50', 'bg-purple-50', 'bg-pink-50', 'bg-indigo-50'];
+    
+    transcription.segments.forEach((segment, index) => {
+        // Create span for the segment text
+        const span = document.createElement('span');
+        span.textContent = segment.text;
+        span.className = `segment-${index} ${colors[index % colors.length]} mr-1 cursor-pointer`;
+        span.setAttribute('data-index', index);
+        
+        // Add click event listener
+        span.addEventListener('click', function() {
+            handleFullTranscriptSegmentClick(index);
+        });
+        
+        fullTranscriptDiv.appendChild(span);
+
+        // Add a space after each segment, outside of the colored span
+        if (index < transcription.segments.length - 1) {
+            const space = document.createTextNode(' ');
+            fullTranscriptDiv.appendChild(space);
+        }
+    });
+
+    // Update the full text if it's not already set
+    if (!transcription.text) {
+        transcription.text = transcription.segments.map(segment => segment.text).join(' ');
+    }
+}
+
+function handleFullTranscriptSegmentClick(index) {
+    // This function will be defined in ui.js
+    if (typeof handleSegmentClick === 'function') {
+        handleSegmentClick(index);
+    } else {
+        console.error('handleSegmentClick function is not defined');
+    }
 }
 
 function retranscribeSegment(index) {

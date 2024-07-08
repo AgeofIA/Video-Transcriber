@@ -36,6 +36,11 @@ def transcribe_audio(file_path):
             response_format="verbose_json",
             timestamp_granularities=["segment"]
         )
+    
+    # Ensure the full text is included in the transcription object
+    if not hasattr(transcription, 'text') or not transcription.text:
+        transcription.text = ' '.join([seg['text'].strip() for seg in transcription.segments])
+    
     return transcription
 
 def update_transcription(transcription, index, start_time, end_time, text):

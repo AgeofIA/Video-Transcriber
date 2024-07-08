@@ -29,7 +29,7 @@
         <div id="transcription-result" class="hidden space-y-6">
             <div>
                 <h2 class="text-xl font-bold mb-4 text-slate-800">Full Transcript:</h2>
-                <textarea id="full-transcription" class="w-full h-40 p-4 border border-slate-300 rounded-lg focus:outline-none focus:ring-0" readonly></textarea>
+                <div id="full-transcription" class="w-full h-40 p-4 border border-slate-300 rounded-lg focus:outline-none focus:ring-0 overflow-y-auto" contenteditable="true"></div>
             </div>
             
             <div class="flex flex-col items-center">
@@ -98,8 +98,8 @@
 
     <script src="{{ url_for('static', filename='js/icons.js') }}"></script>
     <script src="{{ url_for('static', filename='js/player.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/transcription.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/segments.js') }}"></script>
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
 </body>

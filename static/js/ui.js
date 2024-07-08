@@ -50,13 +50,47 @@ function updateSortButtonVisibility() {
     }
 }
 
-// Handles the click event on a segment
+// Handle segment highlighting and selection
 function handleSegmentClick(index) {
     if (currentlySelectedSegmentIndex !== index) {
         currentlySelectedSegmentIndex = index;
         highlightSegment(index);
+        highlightFullTranscriptSegment(index);
+        scrollToSegmentInFullTranscript(index);
+        scrollToSegmentInSegmentsList(index);
         playSegment(index);
         document.getElementById('clear-selection').classList.remove('hidden');
+    }
+}
+
+// Scroll to the segment in the full transcript
+function scrollToSegmentInFullTranscript(index) {
+    const fullTranscriptDiv = document.getElementById('full-transcription');
+    const segments = fullTranscriptDiv.getElementsByTagName('span');
+    if (index !== null && index < segments.length) {
+        segments[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Scroll to the segment in the segments list
+function scrollToSegmentInSegmentsList(index) {
+    const segmentedTranscription = document.getElementById('segmented-transcription');
+    const segmentDiv = segmentedTranscription.querySelector(`.segment-container[data-index="${index}"]`);
+    if (segmentDiv) {
+        // Use setTimeout to ensure the scroll happens after the DOM has updated
+        setTimeout(() => {
+            const containerRect = segmentedTranscription.getBoundingClientRect();
+            const segmentRect = segmentDiv.getBoundingClientRect();
+            
+            // Calculate the scroll position to bring the segment to the top of the container
+            const scrollTop = segmentedTranscription.scrollTop + (segmentRect.top - containerRect.top);
+            
+            // Scroll the container
+            segmentedTranscription.scrollTo({
+                top: scrollTop,
+                behavior: 'smooth'
+            });
+        }, 0);
     }
 }
 
@@ -76,10 +110,27 @@ function highlightSegment(index) {
     }
 }
 
-// Clears the current segment selection
+// Highlight the selected segment in the full transcript
+function highlightFullTranscriptSegment(index) {
+    const fullTranscriptDiv = document.getElementById('full-transcription');
+    const segments = fullTranscriptDiv.getElementsByTagName('span');
+
+    // Remove highlight from all segments
+    for (let i = 0; i < segments.length; i++) {
+        segments[i].classList.remove('bg-yellow-200');
+    }
+
+    // Add highlight to the selected segment
+    if (index !== null && index < segments.length) {
+        segments[index].classList.add('bg-yellow-200');
+    }
+}
+
+// Clear the currently selected segment and reset the UI
 function clearSegmentSelection() {
     currentlySelectedSegmentIndex = null;
     highlightSegment(null);
+    highlightFullTranscriptSegment(null);
     resetVideoPlayer();
     document.getElementById('clear-selection').classList.add('hidden');
 }

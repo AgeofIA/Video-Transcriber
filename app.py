@@ -32,10 +32,10 @@ def transcribe_video():
         transcription = transcribe_audio(video_file_path)
         os.unlink(video_file_path)  # Delete the temporary video file
         
-        # Store the transcription data and YouTube URL in the session
+        # Ensure the full text is included in the session data
         session['transcription'] = {
             'youtube_id': youtube_id,
-            'text': transcription.text.strip(),
+            'text': transcription.text,
             'segments': [{**segment, 'text': segment['text'].strip()} for segment in transcription.segments]
         }
         session['youtube_url'] = youtube_url
@@ -43,7 +43,12 @@ def transcribe_video():
         # Check if segments are sorted
         is_sorted_status = is_sorted(session['transcription']['segments'])
         
-        return jsonify({**session['transcription'], 'is_sorted': is_sorted_status})
+        return jsonify({
+            'youtube_id': youtube_id,
+            'text': transcription.text,
+            'segments': session['transcription']['segments'],
+            'is_sorted': is_sorted_status
+        })
     except Exception as e:
         return jsonify({'error': f'An error occurred while processing the video: {str(e)}'}), 500
 
@@ -52,7 +57,12 @@ def get_cached_transcription():
     if 'transcription' in session:
         is_sorted_status = is_sorted(session['transcription']['segments'])
         return jsonify({
-            'transcription': {**session['transcription'], 'is_sorted': is_sorted_status},
+            'transcription': {
+                'youtube_id': session['transcription']['youtube_id'],
+                'text': session['transcription']['text'],
+                'segments': session['transcription']['segments'],
+                'is_sorted': is_sorted_status
+            },
             'youtube_url': session.get('youtube_url', '')
         })
     else:
