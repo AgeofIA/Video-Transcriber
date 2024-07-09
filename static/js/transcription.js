@@ -95,12 +95,7 @@ function updateFullTranscription() {
         const span = document.createElement('span');
         span.textContent = segment.text;
         span.className = `segment-${index} ${colors[index % colors.length]} mr-1 cursor-pointer`;
-        span.setAttribute('data-index', index);
-        
-        // Add click event listener
-        span.addEventListener('click', function() {
-            handleFullTranscriptSegmentClick(index);
-        });
+        span.setAttribute('data-index', index);  // Ensure this line is present
         
         fullTranscriptDiv.appendChild(span);
 

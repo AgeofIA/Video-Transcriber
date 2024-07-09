@@ -51,13 +51,21 @@ function updateSortButtonVisibility() {
 }
 
 // Handle segment highlighting and selection
-function handleSegmentClick(index) {
+function handleSegmentClick(index, source) {
     if (currentlySelectedSegmentIndex !== index) {
         currentlySelectedSegmentIndex = index;
         highlightSegment(index);
         highlightFullTranscriptSegment(index);
-        scrollToSegmentInFullTranscript(index);
-        scrollToSegmentInSegmentsList(index);
+        
+        // Use setTimeout to ensure the DOM has updated before scrolling
+        setTimeout(() => {
+            if (source === 'full-transcription') {
+                scrollToSegmentInSegmentsList(index);
+            } else if (source === 'segmented-transcription') {
+                scrollToSegmentInFullTranscript(index);
+            }
+        }, 0);
+        
         playSegment(index);
         document.getElementById('clear-selection').classList.remove('hidden');
     }
@@ -68,7 +76,11 @@ function scrollToSegmentInFullTranscript(index) {
     const fullTranscriptDiv = document.getElementById('full-transcription');
     const segments = fullTranscriptDiv.getElementsByTagName('span');
     if (index !== null && index < segments.length) {
-        segments[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const segment = segments[index];
+        const containerRect = fullTranscriptDiv.getBoundingClientRect();
+        const segmentRect = segment.getBoundingClientRect();
+        
+        fullTranscriptDiv.scrollTop = fullTranscriptDiv.scrollTop + (segmentRect.top - containerRect.top) - (containerRect.height / 2) + (segmentRect.height / 2);
     }
 }
 
@@ -77,20 +89,14 @@ function scrollToSegmentInSegmentsList(index) {
     const segmentedTranscription = document.getElementById('segmented-transcription');
     const segmentDiv = segmentedTranscription.querySelector(`.segment-container[data-index="${index}"]`);
     if (segmentDiv) {
-        // Use setTimeout to ensure the scroll happens after the DOM has updated
-        setTimeout(() => {
-            const containerRect = segmentedTranscription.getBoundingClientRect();
-            const segmentRect = segmentDiv.getBoundingClientRect();
-            
-            // Calculate the scroll position to bring the segment to the top of the container
-            const scrollTop = segmentedTranscription.scrollTop + (segmentRect.top - containerRect.top);
-            
-            // Scroll the container
-            segmentedTranscription.scrollTo({
-                top: scrollTop,
-                behavior: 'smooth'
-            });
-        }, 0);
+        const containerRect = segmentedTranscription.getBoundingClientRect();
+        const segmentRect = segmentDiv.getBoundingClientRect();
+        
+        // Calculate the scroll position to bring the segment to the top of the container
+        const scrollTop = segmentedTranscription.scrollTop + (segmentRect.top - containerRect.top);
+        
+        // Scroll the container
+        segmentedTranscription.scrollTop = scrollTop;
     }
 }
 

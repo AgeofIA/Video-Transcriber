@@ -57,12 +57,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set up event listeners for segmented transcription interactions
     const segmentedTranscription = document.getElementById('segmented-transcription');
 
-    // Handle segment selection
+    // Handle segment selection in segmented transcription
     segmentedTranscription.addEventListener('mousedown', event => {
         const segmentDiv = event.target.closest('.segment-container');
         if (segmentDiv) {
             const index = parseInt(segmentDiv.getAttribute('data-index'));
-            handleSegmentClick(index);
+            handleSegmentClick(index, 'segmented-transcription');
+        }
+    });
+
+    // Handle segment selection in full transcription
+    const fullTranscription = document.getElementById('full-transcription');
+    fullTranscription.addEventListener('mousedown', event => {
+        const segmentSpan = event.target.closest('span[data-index]');
+        if (segmentSpan) {
+            const index = parseInt(segmentSpan.getAttribute('data-index'));
+            handleSegmentClick(index, 'full-transcription');
         }
     });
 
