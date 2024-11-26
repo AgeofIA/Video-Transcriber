@@ -13,10 +13,10 @@
         <h1 class="text-4xl font-bold mb-8 text-center text-slate-800">YouTube Video Transcriber</h1>
         
         <div class="max-w-xl mx-auto mb-8">
-            <div class="flex">
+            <form id="transcribe-form" class="flex" onsubmit="event.preventDefault(); transcribeVideo();">
                 <input type="text" id="youtube-url" placeholder="Enter YouTube URL" value="{{ youtube_url }}" class="flex-grow p-3 border border-slate-300 rounded-l-lg focus:outline-none focus:ring-0">
-                <button id="transcribe-btn" class="bg-blue-500 text-white px-6 py-3 rounded-r-lg hover:bg-blue-600 transition duration-300 ease-in-out">Transcribe</button>
-            </div>
+                <button type="submit" id="transcribe-btn" class="bg-blue-500 text-white px-6 py-3 rounded-r-lg hover:bg-blue-600 transition duration-300 ease-in-out">Transcribe</button>
+            </form>
         </div>
         
         <div id="how-to" class="max-w-xl mx-auto mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">

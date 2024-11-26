@@ -31,11 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for any cached transcription data
     checkForCachedTranscription();
 
+    // Set up form submission handler for transcription
+    document.getElementById('transcribe-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        transcribeVideo();
+    });
+
     // Set up event listeners for main control buttons
-    document.getElementById('transcribe-btn').addEventListener('click', transcribeVideo);
-    document.getElementById('download-csv').addEventListener('click', downloadCSV);
-    document.getElementById('download-txt').addEventListener('click', downloadTXT);
-    document.getElementById('download-srt').addEventListener('click', downloadSRT);
     document.getElementById('clear-selection').addEventListener('click', clearSegmentSelection);
     document.getElementById('add-segment').addEventListener('click', addSegment);
     document.getElementById('sort-segments').addEventListener('click', sortSegments);
