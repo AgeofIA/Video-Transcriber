@@ -1,6 +1,8 @@
 __pycache__/
-.vscode/
-.env
-transcription_cache/
 .DS_Store
+.vscode/
+
+.env
 flask_session/
+transcription_cache/
+config/
