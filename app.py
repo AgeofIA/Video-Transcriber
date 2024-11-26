@@ -1,8 +1,21 @@
+import io
+import os
+
 from flask import Flask, render_template, request, jsonify, send_file, session
 from flask_session import Session
-from core import download_video, transcribe_audio, get_youtube_id, create_csv, create_srt, add_segment, remove_segment, sort_segments, is_sorted, retranscribe_segment
-import os
-import io
+
+from core import (
+    download_video,
+    transcribe_audio,
+    get_youtube_id,
+    create_csv,
+    create_srt,
+    add_segment,
+    remove_segment,
+    sort_segments,
+    is_sorted,
+    retranscribe_segment
+)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session encryption
