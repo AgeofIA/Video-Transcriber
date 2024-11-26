@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Add after the imports
+MAX_VIDEO_DURATION = 600  # 10 minutes max
+
 def get_youtube_id(url):
     parsed_url = urlparse(url)
     if parsed_url.hostname == 'youtu.be':
@@ -27,100 +30,67 @@ def get_youtube_id(url):
             return parse_qs(parsed_url.query)['v'][0]
     return None
 
-def download_video(youtube_url):
-    temp_file = None
+def download_audio(youtube_url):
     temp_audio_file = None
     
     try:
-        logger.info(f"Starting download process for URL: {youtube_url}")
+        logger.info(f"Starting audio download process for URL: {youtube_url}")
         
-        # Create temporary files first
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-        temp_audio_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
-        
-        logger.info(f"Created temporary files: video={temp_file.name}, audio={temp_audio_file.name}")
-        
-        # Configure yt-dlp options
+        # First, extract video information without downloading
         ydl_opts = {
-            'format': 'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best',
-            'outtmpl': temp_file.name,
-            'quiet': False,
-            'no_warnings': False,
-            'progress': True,
-            'force_overwrites': True,  # Force overwrite of existing files
-            'no_cache_dir': True,      # Disable cache
-            'rm_cache_dir': True,      # Remove any existing cache
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }]
+            'quiet': True,
+            'extract_flat': True
         }
         
-        logger.info("Starting video download with yt-dlp")
-        
-        # Clean up any existing files before download
-        if os.path.exists(temp_file.name):
-            os.unlink(temp_file.name)
-        if os.path.exists(temp_audio_file.name):
-            os.unlink(temp_audio_file.name)
-            
-        # Download the video
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            try:
-                info = ydl.extract_info(youtube_url, download=True)
-                if not info:
-                    raise Exception("No video information extracted")
-                logger.info(f"Download completed. File size: {os.path.getsize(temp_file.name) if os.path.exists(temp_file.name) else 'file not found'}")
-            except Exception as e:
-                logger.error(f"yt-dlp download failed: {str(e)}")
-                # Try alternate download method
-                ydl_opts['format'] = 'bestaudio[ext=mp3]/bestaudio/best'
-                ydl_opts['postprocessors'] = [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                }]
-                ydl_opts['outtmpl'] = temp_audio_file.name
-                info = ydl.extract_info(youtube_url, download=True)
-                if os.path.exists(temp_audio_file.name) and os.path.getsize(temp_audio_file.name) > 0:
-                    logger.info("Successfully downloaded audio directly")
-                    return temp_audio_file.name
-                raise
-        
-        # Verify video download
-        if not os.path.exists(temp_file.name):
-            raise Exception(f"Video file not found at {temp_file.name}")
-        if os.path.getsize(temp_file.name) == 0:
-            raise Exception("Downloaded video file is empty")
+            info = ydl.extract_info(youtube_url, download=False)
+            duration = info.get('duration', 0)
             
-        logger.info("Extracting audio from video")
+            if duration > MAX_VIDEO_DURATION:
+                raise Exception(f"Video is too long. Maximum duration allowed is {MAX_VIDEO_DURATION/60:.1f} minutes.")
         
-        # Extract audio
-        video = VideoFileClip(temp_file.name)
-        if not video.audio:
-            raise Exception("No audio stream found in video")
+        # Create temporary file path (don't create the file yet)
+        temp_audio_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3').name
+        logger.info(f"Created temporary file path: audio={temp_audio_file}")
+        
+        # Configure yt-dlp options for download
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'outtmpl': temp_audio_file[:-4],
+            'quiet': True,
+            'extract_audio': True,
+            'audio_format': 'mp3',
+            'audio_quality': 0,
+            'prefer_ffmpeg': True
+        }
+        
+        # Download the audio
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([youtube_url])
             
-        video.audio.write_audiofile(temp_audio_file.name, codec='mp3', logger=None)
-        video.close()
+        # The actual file will have .mp3 extension added by yt-dlp
+        actual_file = temp_audio_file[:-4] + '.mp3'
         
-        # Clean up video file
-        os.unlink(temp_file.name)
-        logger.info("Video file cleaned up")
-        
-        # Verify audio file
-        if not os.path.exists(temp_audio_file.name) or os.path.getsize(temp_audio_file.name) == 0:
-            raise Exception("Failed to extract audio from video")
+        # Verify the file exists and has content
+        if not os.path.exists(actual_file) or os.path.getsize(actual_file) == 0:
+            raise Exception("Failed to download audio file")
             
-        logger.info("Audio extraction completed successfully")
-        return temp_audio_file.name
+        return actual_file
             
     except Exception as e:
-        logger.error(f"Error in download_video: {str(e)}")
+        logger.error(f"Error in download_audio: {str(e)}")
         # Clean up any temporary files
-        if temp_file and os.path.exists(temp_file.name):
-            os.unlink(temp_file.name)
-        if temp_audio_file and os.path.exists(temp_audio_file.name):
-            os.unlink(temp_audio_file.name)
-        raise Exception(f"Failed to download video: {str(e)}")
+        if temp_audio_file:
+            base_path = temp_audio_file[:-4]
+            for ext in ['.mp3', '.m4a', '.part', '.webm']:
+                if os.path.exists(base_path + ext):
+                    os.unlink(base_path + ext)
+        raise
 
 def transcribe_audio(file_path):
     with open(file_path, "rb") as audio_file:

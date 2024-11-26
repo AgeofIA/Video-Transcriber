@@ -4,3 +4,4 @@ python-dotenv
 yt-dlp
 moviepy
 openai
+ffmpeg-python

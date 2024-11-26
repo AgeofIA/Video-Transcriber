@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, jsonify, send_file, session
 from flask_session import Session
 
 from core import (
-    download_video,
+    download_audio,
     transcribe_audio,
     get_youtube_id,
     create_csv,
@@ -41,9 +41,9 @@ def transcribe_video():
         return jsonify({'error': 'Invalid YouTube URL. Please enter a valid YouTube video link.'}), 400
     
     try:
-        video_file_path = download_video(youtube_url)
-        transcription = transcribe_audio(video_file_path)
-        os.unlink(video_file_path)  # Delete the temporary video file
+        audio_file_path = download_audio(youtube_url)
+        transcription = transcribe_audio(audio_file_path)
+        os.unlink(audio_file_path)  # Delete the temporary audio file
         
         # Ensure the full text is included in the session data
         session['transcription'] = {
@@ -63,7 +63,12 @@ def transcribe_video():
             'is_sorted': is_sorted_status
         })
     except Exception as e:
-        return jsonify({'error': f'An error occurred while processing the video: {str(e)}'}), 500
+        error_message = str(e)
+        if "Maximum duration allowed" in error_message:
+            return jsonify({'error': error_message}), 400
+        elif "413" in error_message:
+            return jsonify({'error': 'The video is too large to process. Please try a shorter video.'}), 413
+        return jsonify({'error': f'An error occurred while processing the video: {error_message}'}), 500
 
 @app.route('/get_cached_transcription')
 def get_cached_transcription():
@@ -205,7 +210,7 @@ def retranscribe_segment_route():
     
     try:
         # Download the video
-        video_file_path = download_video(youtube_url)
+        video_file_path = download_audio(youtube_url)
         
         # Get the segment to retranscribe
         segment = session['transcription']['segments'][index]

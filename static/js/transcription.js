@@ -20,6 +20,7 @@ function checkForCachedTranscription() {
                 initializeYouTubePlayer(data.transcription.youtube_id);
                 document.getElementById('transcription-result').classList.remove('hidden');
                 document.getElementById('download-section').classList.remove('hidden');
+                document.getElementById('how-to').classList.add('hidden');
             }
             if (data && data.youtube_url) {
                 document.getElementById('youtube-url').value = data.youtube_url;
@@ -36,11 +37,13 @@ function transcribeVideo() {
     const result = document.getElementById('transcription-result');
     const errorMessage = document.getElementById('error-message');
     const downloadSection = document.getElementById('download-section');
+    const howTo = document.getElementById('how-to');
     
     loading.classList.remove('hidden');
     result.classList.add('hidden');
     errorMessage.classList.add('hidden');
     downloadSection.classList.add('hidden');
+    howTo.classList.add('hidden');
     errorMessage.textContent = '';
     
     fetch('/transcribe', {
@@ -76,6 +79,7 @@ function transcribeVideo() {
         loading.classList.add('hidden');
         errorMessage.textContent = error.message;
         errorMessage.classList.remove('hidden');
+        howTo.classList.remove('hidden');
     });
 }
 

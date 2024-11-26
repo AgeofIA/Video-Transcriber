@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from core import download_video, transcribe_audio, get_youtube_id
+from core import download_audio, transcribe_audio, get_youtube_id
 
 class TestCoreFunctions(unittest.TestCase):
     def setUp(self):
@@ -28,21 +28,21 @@ class TestCoreFunctions(unittest.TestCase):
             with self.subTest(url=url):
                 self.assertEqual(get_youtube_id(url), expected_id)
 
-    def test_video_download(self):
-        # Test downloading video and converting to audio
-        audio_file_path = download_video(self.test_youtube_url)
+    def test_audio_download(self):
+        # Test downloading and converting to audio
+        audio_file_path = download_audio(self.test_youtube_url)
         self.temp_files.append(audio_file_path)
         
         # Verify the file exists and has content
         self.assertTrue(os.path.exists(audio_file_path))
         self.assertGreater(os.path.getsize(audio_file_path), 0)
+        self.assertTrue(audio_file_path.endswith('.mp3'))
         
-        # Don't return the audio_file_path, store it as an instance variable if needed
         self.audio_file_path = audio_file_path
 
     def test_audio_transcription(self):
         # Download and transcribe a short video
-        audio_file_path = download_video(self.test_youtube_url)
+        audio_file_path = download_audio(self.test_youtube_url)
         self.temp_files.append(audio_file_path)
         
         # Test transcription
@@ -63,7 +63,7 @@ class TestCoreFunctions(unittest.TestCase):
     def test_invalid_youtube_url(self):
         # Test handling of invalid YouTube URL
         with self.assertRaises(Exception):
-            download_video('https://youtube.com/invalid_video_id')
+            download_audio('https://youtube.com/invalid_video_id')
 
 if __name__ == '__main__':
     unittest.main()
