@@ -6,3 +6,6 @@ __pycache__/
 flask_session/
 transcription_cache/
 config/
+
+deploy/
+deploy.zip
