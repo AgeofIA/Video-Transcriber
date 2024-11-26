@@ -141,4 +141,23 @@ document.addEventListener('DOMContentLoaded', () => {
     autoplayToggle.addEventListener('change', (event) => {
         setAutoplayEnabled(event.target.checked);
     });
+
+    // Add clear cache button event listener
+    const clearCacheButton = document.getElementById('clear-cache');
+    if (clearCacheButton) {
+        clearCacheButton.addEventListener('click', clearCache);
+    }
 });
+
+function clearCache() {
+    if (confirm('Are you sure you want to clear the cached transcription? This action cannot be undone.')) {
+        fetch('/clear_cache', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}

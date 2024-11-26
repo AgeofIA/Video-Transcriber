@@ -230,5 +230,10 @@ def retranscribe_segment_route():
     except Exception as e:
         return jsonify({'error': f'An error occurred while re-transcribing the segment: {str(e)}'}), 500
 
+@app.route('/clear_cache', methods=['POST'])
+def clear_cache():
+    session.clear()
+    return jsonify({'success': True})
+
 if __name__ == '__main__':
     app.run(debug=True, port=5013)

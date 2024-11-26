@@ -3,14 +3,14 @@ let transcription;
 function checkForCachedTranscription() {
     fetch('/get_cached_transcription')
         .then(response => {
-            if (!response.ok) {
-                if (response.status === 404) {
-                    console.log('No cached transcription found');
-                    return;
-                }
-                throw new Error('Error fetching cached transcription');
+            if (response.ok) {
+                document.getElementById('clear-cache').classList.remove('hidden');
+                return response.json();
+            } else if (response.status === 404) {
+                document.getElementById('clear-cache').classList.add('hidden');
+                return null;
             }
-            return response.json();
+            throw new Error('Error fetching cached transcription');
         })
         .then(data => {
             if (data && data.transcription) {
@@ -38,12 +38,14 @@ function transcribeVideo() {
     const errorMessage = document.getElementById('error-message');
     const downloadSection = document.getElementById('download-section');
     const howTo = document.getElementById('how-to');
+    const clearCache = document.getElementById('clear-cache');
     
     loading.classList.remove('hidden');
     result.classList.add('hidden');
     errorMessage.classList.add('hidden');
     downloadSection.classList.add('hidden');
     howTo.classList.add('hidden');
+    clearCache.classList.add('hidden');
     errorMessage.textContent = '';
     
     fetch('/transcribe', {
@@ -65,6 +67,7 @@ function transcribeVideo() {
         loading.classList.add('hidden');
         result.classList.remove('hidden');
         downloadSection.classList.remove('hidden');
+        clearCache.classList.remove('hidden');
         
         transcription = data;
         updateFullTranscription();
