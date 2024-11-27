@@ -11,6 +11,16 @@
 <body class="bg-slate-100 min-h-screen">
     <div class="container mx-auto px-4 pt-12 pb-4">
         <h1 class="text-4xl font-bold mb-8 text-center text-slate-800">YouTube Video Transcriber</h1>
+
+        <div class="max-w-xl mx-auto mb-4">
+            <textarea 
+                id="prompt-input"
+                name="prompt"
+                placeholder="Optional: Add prompt to guide spelling of names, technical terms, brands. (e.g., 'Names: John Smith, Jane Doe')"
+                class="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="2"
+            ></textarea>
+        </div>
         
         <div class="max-w-xl mx-auto relative">
             <form id="transcribe-form" class="flex mb-6" onsubmit="event.preventDefault(); transcribeVideo();">

@@ -25,6 +25,9 @@ function checkForCachedTranscription() {
             if (data && data.youtube_url) {
                 document.getElementById('youtube-url').value = data.youtube_url;
             }
+            if (data && data.prompt) {
+                document.getElementById('prompt-input').value = data.prompt;
+            }
         })
         .catch(error => {
             console.error('Error checking for cached transcription:', error);
@@ -33,6 +36,7 @@ function checkForCachedTranscription() {
 
 function transcribeVideo() {
     const youtubeUrl = document.getElementById('youtube-url').value;
+    const prompt = document.getElementById('prompt-input').value.trim();
     const loading = document.getElementById('loading');
     const result = document.getElementById('transcription-result');
     const errorMessage = document.getElementById('error-message');
@@ -48,12 +52,15 @@ function transcribeVideo() {
     clearCache.classList.add('hidden');
     errorMessage.textContent = '';
     
+    const formData = new FormData();
+    formData.append('youtube_url', youtubeUrl);
+    if (prompt) {
+        formData.append('prompt', prompt);
+    }
+    
     fetch('/transcribe', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `youtube_url=${encodeURIComponent(youtubeUrl)}`
+        body: formData
     })
     .then(response => {
         if (!response.ok) {
@@ -86,62 +93,29 @@ function transcribeVideo() {
     });
 }
 
-function updateFullTranscription() {
-    const fullTranscriptDiv = document.getElementById('full-transcription');
-    fullTranscriptDiv.innerHTML = '';
-    
-    if (!transcription || !transcription.segments) {
-        console.error('Transcription or segments are missing');
-        return;
-    }
-    
-    const colors = ['bg-red-50', 'bg-blue-50', 'bg-green-50', 'bg-yellow-50', 'bg-purple-50', 'bg-pink-50', 'bg-indigo-50'];
-    
-    transcription.segments.forEach((segment, index) => {
-        // Create span for the segment text
-        const span = document.createElement('span');
-        span.textContent = segment.text;
-        span.className = `segment-${index} ${colors[index % colors.length]} mr-1 cursor-pointer`;
-        span.setAttribute('data-index', index);  // Ensure this line is present
-        
-        fullTranscriptDiv.appendChild(span);
-
-        // Add a space after each segment, outside of the colored span
-        if (index < transcription.segments.length - 1) {
-            const space = document.createTextNode(' ');
-            fullTranscriptDiv.appendChild(space);
-        }
-    });
-
-    // Update the full text if it's not already set
-    if (!transcription.text) {
-        transcription.text = transcription.segments.map(segment => segment.text).join(' ');
-    }
-}
-
-function handleFullTranscriptSegmentClick(index) {
-    // This function will be defined in ui.js
-    if (typeof handleSegmentClick === 'function') {
-        handleSegmentClick(index);
-    } else {
-        console.error('handleSegmentClick function is not defined');
-    }
-}
-
 function retranscribeSegment(index) {
     const segmentDiv = document.querySelector(`.segment-container[data-index="${index}"]`);
     const retranscribeButton = segmentDiv.querySelector('.retranscribe-segment');
+    const prompt = document.getElementById('prompt-input').value.trim();
     
     // Disable the button and show loading state
     retranscribeButton.disabled = true;
     retranscribeButton.innerHTML = Icons.LOADING_SPINNER;
+    
+    const data = { 
+        index: index 
+    };
+    
+    if (prompt) {
+        data.prompt = prompt;
+    }
     
     fetch('/retranscribe_segment', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ index: index })
+        body: JSON.stringify(data)
     })
     .then(response => response.json())
     .then(data => {
@@ -172,4 +146,45 @@ function retranscribeSegment(index) {
         retranscribeButton.innerHTML = Icons.RETRANSCRIBE;
         alert('An error occurred while re-transcribing the segment. Please try again.');
     });
+}
+
+function updateFullTranscription() {
+    const fullTranscriptDiv = document.getElementById('full-transcription');
+    fullTranscriptDiv.innerHTML = '';
+    
+    if (!transcription || !transcription.segments) {
+        console.error('Transcription or segments are missing');
+        return;
+    }
+    
+    const colors = ['bg-red-50', 'bg-blue-50', 'bg-green-50', 'bg-yellow-50', 'bg-purple-50', 'bg-pink-50', 'bg-indigo-50'];
+    
+    transcription.segments.forEach((segment, index) => {
+        // Create span for the segment text
+        const span = document.createElement('span');
+        span.textContent = segment.text;
+        span.className = `segment-${index} ${colors[index % colors.length]} mr-1 cursor-pointer`;
+        span.setAttribute('data-index', index);
+        
+        fullTranscriptDiv.appendChild(span);
+
+        // Add a space after each segment, outside of the colored span
+        if (index < transcription.segments.length - 1) {
+            const space = document.createTextNode(' ');
+            fullTranscriptDiv.appendChild(space);
+        }
+    });
+
+    // Update the full text if it's not already set
+    if (!transcription.text) {
+        transcription.text = transcription.segments.map(segment => segment.text).join(' ');
+    }
+}
+
+function handleFullTranscriptSegmentClick(index) {
+    if (typeof handleSegmentClick === 'function') {
+        handleSegmentClick(index);
+    } else {
+        console.error('handleSegmentClick function is not defined');
+    }
 }

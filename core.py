@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Add after the imports
+# Constants
 MAX_VIDEO_DURATION = 600  # 10 minutes max
+MAX_PROMPT_TOKENS = 224  # Whisper's prompt token limit
 
 def get_youtube_id(url):
     parsed_url = urlparse(url)
@@ -92,20 +93,85 @@ def download_audio(youtube_url):
                     os.unlink(base_path + ext)
         raise
 
-def transcribe_audio(file_path):
-    with open(file_path, "rb") as audio_file:
-        transcription = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="verbose_json",
-            timestamp_granularities=["segment"]
-        )
+def transcribe_audio(file_path, prompt=""):
+    """
+    Transcribe audio with optional prompt guidance.
     
-    # Ensure the full text is included in the transcription object
-    if not hasattr(transcription, 'text') or not transcription.text:
-        transcription.text = ' '.join([seg['text'].strip() for seg in transcription.segments])
+    Args:
+        file_path (str): Path to audio file
+        prompt (str): Optional prompt for guiding transcription spelling and style
+        
+    Returns:
+        Transcription object with text and segments
+    """
+    try:
+        logger.info(f"Starting transcription with prompt: {prompt if prompt else 'None'}")
+        
+        with open(file_path, "rb") as audio_file:
+            transcription = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="verbose_json",
+                timestamp_granularities=["segment"],
+                prompt=prompt if prompt else None
+            )
+        
+        # Ensure the full text is included in the transcription object
+        if not hasattr(transcription, 'text') or not transcription.text:
+            transcription.text = ' '.join([seg['text'].strip() for seg in transcription.segments])
+        
+        return transcription
+        
+    except Exception as e:
+        logger.error(f"Error in transcribe_audio: {str(e)}")
+        raise
+
+def retranscribe_segment(video_file_path, start_time, end_time, prompt=""):
+    """
+    Retranscribe a specific segment with optional prompt guidance.
     
-    return transcription
+    Args:
+        video_file_path (str): Path to video file
+        start_time (float): Segment start time in seconds
+        end_time (float): Segment end time in seconds
+        prompt (str): Optional prompt for guiding transcription spelling and style
+        
+    Returns:
+        dict: New segment with transcription result
+    """
+    try:
+        # Extract the audio segment
+        video = VideoFileClip(video_file_path)
+        audio_segment = video.audio.subclip(start_time, end_time)
+        
+        # Save the audio segment to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio_file:
+            audio_segment.write_audiofile(temp_audio_file.name)
+        
+        # Transcribe the audio segment with prompt
+        with open(temp_audio_file.name, "rb") as audio_file:
+            transcription = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="verbose_json",
+                prompt=prompt if prompt else None
+            )
+        
+        # Clean up the temporary audio file
+        os.unlink(temp_audio_file.name)
+        
+        # Create a new segment with the transcription result
+        new_segment = {
+            'start': start_time,
+            'end': end_time,
+            'text': transcription.text.strip()
+        }
+        
+        return new_segment
+        
+    except Exception as e:
+        logger.error(f"Error in retranscribe_segment: {str(e)}")
+        raise
 
 def update_transcription(transcription, index, start_time, end_time, text):
     transcription.segments[index]['start'] = start_time
@@ -181,32 +247,3 @@ def format_time(seconds):
     seconds = seconds % 60
     milliseconds = int((seconds - int(seconds)) * 1000)
     return f"{hours:02d}:{minutes:02d}:{int(seconds):02d},{milliseconds:03d}"
-
-def retranscribe_segment(video_file_path, start_time, end_time):
-    # Extract the audio segment
-    video = VideoFileClip(video_file_path)
-    audio_segment = video.audio.subclip(start_time, end_time)
-    
-    # Save the audio segment to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio_file:
-        audio_segment.write_audiofile(temp_audio_file.name)
-    
-    # Transcribe the audio segment
-    with open(temp_audio_file.name, "rb") as audio_file:
-        transcription = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="verbose_json"
-        )
-    
-    # Clean up the temporary audio file
-    os.unlink(temp_audio_file.name)
-    
-    # Create a new segment with the transcription result
-    new_segment = {
-        'start': start_time,
-        'end': end_time,
-        'text': transcription.text.strip()
-    }
-    
-    return new_segment

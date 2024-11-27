@@ -30,11 +30,13 @@ Session(app)
 @app.route('/')
 def index():
     youtube_url = session.get('youtube_url', '')
-    return render_template('index.html', youtube_url=youtube_url)
+    prompt = session.get('prompt', '')
+    return render_template('index.html', youtube_url=youtube_url, prompt=prompt)
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe_video():
     youtube_url = request.form['youtube_url']
+    prompt = request.form.get('prompt', '').strip()
     youtube_id = get_youtube_id(youtube_url)
     
     if not youtube_id:
@@ -42,16 +44,17 @@ def transcribe_video():
     
     try:
         audio_file_path = download_audio(youtube_url)
-        transcription = transcribe_audio(audio_file_path)
+        transcription = transcribe_audio(audio_file_path, prompt=prompt)
         os.unlink(audio_file_path)  # Delete the temporary audio file
         
-        # Ensure the full text is included in the session data
+        # Store both transcription and prompt in session
         session['transcription'] = {
             'youtube_id': youtube_id,
             'text': transcription.text,
             'segments': [{**segment, 'text': segment['text'].strip()} for segment in transcription.segments]
         }
         session['youtube_url'] = youtube_url
+        session['prompt'] = prompt
         
         # Check if segments are sorted
         is_sorted_status = is_sorted(session['transcription']['segments'])
@@ -60,7 +63,8 @@ def transcribe_video():
             'youtube_id': youtube_id,
             'text': transcription.text,
             'segments': session['transcription']['segments'],
-            'is_sorted': is_sorted_status
+            'is_sorted': is_sorted_status,
+            'prompt': prompt
         })
     except Exception as e:
         error_message = str(e)
@@ -81,10 +85,48 @@ def get_cached_transcription():
                 'segments': session['transcription']['segments'],
                 'is_sorted': is_sorted_status
             },
-            'youtube_url': session.get('youtube_url', '')
+            'youtube_url': session.get('youtube_url', ''),
+            'prompt': session.get('prompt', '')
         })
     else:
         return jsonify({'error': 'No cached transcription available'}), 404
+
+@app.route('/retranscribe_segment', methods=['POST'])
+def retranscribe_segment_route():
+    if 'transcription' not in session:
+        return jsonify({'error': 'No transcription available'}), 400
+    
+    data = request.json
+    index = data['index']
+    youtube_url = session['youtube_url']
+    prompt = data.get('prompt', session.get('prompt', ''))
+    
+    try:
+        # Download the video
+        video_file_path = download_audio(youtube_url)
+        
+        # Get the segment to retranscribe
+        segment = session['transcription']['segments'][index]
+        
+        # Retranscribe the segment with prompt
+        new_segment = retranscribe_segment(
+            video_file_path, 
+            segment['start'], 
+            segment['end'],
+            prompt=prompt
+        )
+        
+        # Update the transcription in the session
+        session['transcription']['segments'][index] = new_segment
+        session['transcription']['text'] = ' '.join([seg['text'].strip() for seg in session['transcription']['segments']])
+        session.modified = True
+        
+        # Clean up the temporary video file
+        os.unlink(video_file_path)
+        
+        return jsonify({'success': True, 'segment': new_segment})
+    except Exception as e:
+        return jsonify({'error': f'An error occurred while re-transcribing the segment: {str(e)}'}), 500
 
 @app.route('/update_segment', methods=['POST'])
 def update_segment():
@@ -103,8 +145,7 @@ def update_segment():
     
     # Update the full transcription text
     session['transcription']['text'] = ' '.join([seg['text'].strip() for seg in session['transcription']['segments']])
-    
-    session.modified = True  # Ensure the session is saved
+    session.modified = True
     
     return jsonify({'success': True})
 
@@ -119,10 +160,16 @@ def add_new_segment():
     text = data['text']
     selected_index = data['selected_index']
     
-    session['transcription'], is_sorted_status = add_segment(session['transcription'], start_time, end_time, text, selected_index)
+    session['transcription'], is_sorted_status = add_segment(
+        session['transcription'], start_time, end_time, text, selected_index
+    )
     session.modified = True
     
-    return jsonify({'success': True, 'transcription': session['transcription'], 'is_sorted': is_sorted_status})
+    return jsonify({
+        'success': True, 
+        'transcription': session['transcription'], 
+        'is_sorted': is_sorted_status
+    })
 
 @app.route('/remove_segment', methods=['POST'])
 def remove_existing_segment():
@@ -133,6 +180,16 @@ def remove_existing_segment():
     index = data['index']
     
     session['transcription'] = remove_segment(session['transcription'], index)
+    session.modified = True
+    
+    return jsonify({'success': True, 'transcription': session['transcription']})
+
+@app.route('/sort_segments', methods=['POST'])
+def sort_transcription_segments():
+    if 'transcription' not in session:
+        return jsonify({'error': 'No transcription available'}), 400
+    
+    session['transcription'] = sort_segments(session['transcription'])
     session.modified = True
     
     return jsonify({'success': True, 'transcription': session['transcription']})
@@ -187,53 +244,6 @@ def download_srt():
         as_attachment=True,
         download_name='transcript.srt'
     )
-
-@app.route('/sort_segments', methods=['POST'])
-def sort_transcription_segments():
-    if 'transcription' not in session:
-        return jsonify({'error': 'No transcription available'}), 400
-    
-    session['transcription'] = sort_segments(session['transcription'])
-    session.modified = True
-    
-    return jsonify({'success': True, 'transcription': session['transcription']})
-
-# Add this new route
-@app.route('/retranscribe_segment', methods=['POST'])
-def retranscribe_segment_route():
-    if 'transcription' not in session:
-        return jsonify({'error': 'No transcription available'}), 400
-    
-    data = request.json
-    index = data['index']
-    youtube_url = session['youtube_url']
-    
-    try:
-        # Download the video
-        video_file_path = download_audio(youtube_url)
-        
-        # Get the segment to retranscribe
-        segment = session['transcription']['segments'][index]
-        
-        # Retranscribe the segment
-        new_segment = retranscribe_segment(video_file_path, segment['start'], segment['end'])
-        
-        # Update the transcription in the session
-        session['transcription']['segments'][index] = new_segment
-        session['transcription']['text'] = ' '.join([seg['text'].strip() for seg in session['transcription']['segments']])
-        session.modified = True
-        
-        # Clean up the temporary video file
-        os.unlink(video_file_path)
-        
-        return jsonify({'success': True, 'segment': new_segment})
-    except Exception as e:
-        return jsonify({'error': f'An error occurred while re-transcribing the segment: {str(e)}'}), 500
-
-@app.route('/clear_cache', methods=['POST'])
-def clear_cache():
-    session.clear()
-    return jsonify({'success': True})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5013)
